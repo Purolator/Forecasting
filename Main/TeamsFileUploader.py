@@ -49,7 +49,6 @@ def teamFileUpload(file_path, Email, Password):
             (By.XPATH, "//input[@id='input36']")
         )
     )
-    # driver.find_element(By.XPATH, "//input[@type='password']").send_keys("Graace%55")
     driver.find_element(By.XPATH, "//input[@id='input28']").clear()
     driver.find_element(By.XPATH, "//input[@id='input28']").send_keys(Email)
     driver.find_element(By.XPATH, "//input[@id='input36']").send_keys(Password)
@@ -59,18 +58,13 @@ def teamFileUpload(file_path, Email, Password):
     driver.find_element(By.XPATH, "//input[@id='idBtn_Back']").click()
     time.sleep(4)
     driver.maximize_window()
-    # driver.find_element(By.XPATH, "//div[@name='Documents']").click()
-    # time.sleep(2)
-    # driver.find_element(By.XPATH, "//button[@title='General']").click()
-    # time.sleep(2)
-    # driver.find_element(By.XPATH, "//button[@title='Input Files']").click()
     time.sleep(2)
     driver.find_element(
         By.XPATH, "//a[@aria-label='Click or enter to return to classic SharePoint']"
     ).click()
     time.sleep(2)
     driver.find_element(By.ID, "QCB1_Button2").click()
-    time.sleep(2)
+    time.sleep(1.5)
     winHandleBefore = driver.window_handles[0]
     iframe = driver.find_element(By.XPATH, "//iframe[@class='ms-dlgFrame']")
     driver.switch_to.frame(iframe)
