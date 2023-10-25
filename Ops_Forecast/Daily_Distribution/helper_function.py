@@ -47,7 +47,7 @@ events_weeks = {
                         'canada_day'  :                     {2023:[27]},
                         'civic_day'   :                     {2023:[32]},
                         'labour_day'  :                     {2023:[36]},
-                        'Truth_and_Reconciliation' :        {2022:[39]},
+                        'Truth_and_Reconciliation' :        {2023:[27]},
                         'Week_after_T&R':                   {2023:[15],2022:[40]},
                         'thanksgiving':                     {2022:[41]},
                         'rememberance_day':                 {2022:[45]},
@@ -85,7 +85,7 @@ events_weeks_future = {
                                 'canada_day':{                  "Week":21   ,"Province":ALL},
                                 'civic_day':{                   "Week":31   ,"Province":civic_provinces},
                                 'labour_day':{                  "Week":36   ,"Province":ALL},
-                                'Truth_and_Reconciliation':{    "Week":39   ,"Province":ALL},
+                                'Truth_and_Reconciliation':{    "Week":40   ,"Province":ALL},
                                 'Week_after_T&R':{              "Week":40   ,"Province":ALL},
                                 'thanksgiving':{                "Week":41   ,"Province":ALL},
                                 'rememberance_day':{            "Week":45   ,"Province":rememberance_provinces},
@@ -208,7 +208,7 @@ def creating_dataset_for_events_distribution(fmr,events_weeks):
 
 
 def creating_events_distribution_table(fmr_events_weeks,events_weeks):
-    """reating daily distribution for events weeks
+    """Creating daily distribution for events weeks
 
     Args:
         fmr_events_weeks (Dataframe): filtering weeks having events on fmr table
@@ -499,3 +499,65 @@ def candidates_for_checking(daily_forecast_tbl,df,weeks=[42,43,45],year=[2023],m
 
     daily_forecast_tbl_comparison = daily_forecast_tbl_comparison[(np.abs(daily_forecast_tbl_comparison['% Error'])>thr) & (np.abs(daily_forecast_tbl_comparison['Error'])>err)]
     return daily_forecast_tbl_comparison
+
+
+
+
+def replacing_old_dis_with_new_dist(fmr,old_distribution_table,target_year = 2023,target_week = 48,
+                                    event_name="-",division = "ALL",terminal="ALL",dis_weeks={2021:[48]},
+                                    terminal_division_list = terminal_division_list):
+    """_summary_ :
+        In this function, for weeks when we need to replace the general distribution with a specific week,
+        we can utilize this function. If we only need to replace a single terminal, use the terminal number instead of "ALL."
+
+    Args:
+        fmr (_type_): fmr table
+        old_distribution_table (_type_): daily distribution before adjusting
+        target_year (int, optional): _description_. Defaults to 2023.
+        target_week (int, optional): _description_. Defaults to 48.
+        dis_weeks (dict, optional): _description_. Defaults to {2021:[48]}.
+        event_name (str, optional): _description_. Defaults to "-".
+        division (str, optional): _description_. Defaults to "ALL".
+        terminal (str, optional): _description_. Defaults to "ALL".
+        terminal_division_list (_type_, optional): _description_. Defaults to terminal_division_list.
+
+    Returns:
+        _type_: _description_
+    """
+
+    df = functions.changing_column_names(fmr)
+
+    # Adding week 
+    if 'Week' not in df.columns : df1 = functions.adding_year_week(df)
+    
+    # Filter on Division and Terminal
+    if division!="ALL" :  df = df[df['Division']==division]
+    if terminal !="ALL" : df = df[df['Terminal']==terminal]
+    
+    # Create an empty DataFrame to store the filtered results
+    filtered_df = pd.DataFrame(columns=df.columns)
+
+    # Iterate through the dictionary and filter the DataFrame
+    for year, weeks in dis_weeks.items():
+        year_mask = df['Year'] == year
+        week_mask = df['Week'].isin(weeks)
+        filtered_df = filtered_df.append(df[year_mask & week_mask])
+
+    # Create new distribution
+    new_distribution = creating_regular_distribution(filtered_df,variables_list = variables_list)
+    new_distribution.insert(0,column="Year",value=target_year)
+    new_distribution.insert(1,column="Week",value=target_week)
+    new_distribution["event_name"]= event_name
+    new_distribution = new_distribution.merge(terminal_division_list[['Terminal','Province']],on='Terminal',how='left')
+    
+    # Removing old distribution from the input and replace it with new distribution 
+    terminal_list_for_old_dis = sorted(new_distribution['Terminal'].dropna().unique())
+    condition = (old_distribution_table["Terminal"].isin(terminal_list_for_old_dis)) & (old_distribution_table['Year']==target_year) & (old_distribution_table['Week']==target_week)
+    old_distribution_table = old_distribution_table[~(condition)]
+    
+    new_distribution = pd.concat([new_distribution,old_distribution_table])
+    
+    
+    
+    return new_distribution
+    
