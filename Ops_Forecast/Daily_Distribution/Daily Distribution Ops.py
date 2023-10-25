@@ -10,6 +10,7 @@ sys.path.insert(0, root_folder)
 import functions
 import helper_function
 
+
 #################################################################################################################
 selection_weeks=[31,30,28,23,19]
 regular_weeks = {
@@ -49,8 +50,8 @@ dis_events_weeks            = helper_function.creating_events_distribution_table
 
 """ PART 3 : Creating year_week Table """
 year_week_structure_tbl     = helper_function.year_week_structure(2023,2024,events_weeks_future)
-#year_week_structure_tbl.to_parquet('year_week_structure_tbl.parquet')
-#year_week_structure_tbl = pd.read_parquet('year_week_structure_tbl.parquet')
+year_week_structure_tbl.to_parquet('year_week_structure_tbl.parquet')
+year_week_structure_tbl = pd.read_parquet('year_week_structure_tbl.parquet')
 year_week_events_tbl        = helper_function.year_week_events_tbl(year_week_structure_tbl,events_weeks_future)
 
 
@@ -67,8 +68,9 @@ distribution_tbl = pd.concat(
                             )
 
 
-#Exceptional cases :
-
+#Exceptional cases : in case you need to replace division|terminal distribution with a better one
+distribution_tbl = helper_function.replacing_old_dis_with_new_dist(fmr,distribution_tbl,target_year = 2023,target_week = 48,
+                                    event_name="peak",division = "PACIFIC",terminal="ALL",dis_weeks={2021:[48]})
 
 """ PART 5 : Special Editing """
 termianls_without_weekend_op = [40,42,191,170]
